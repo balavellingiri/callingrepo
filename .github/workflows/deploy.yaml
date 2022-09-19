@@ -15,11 +15,14 @@ jobs:
       ostype: "ubuntu-latest"
   env-declaration:
     runs-on: ubuntu-latest
+    env:
+      DEVURL: "http://unarmed-house111222.surge.sh/"
+      STAGEURL: "http://unarmed-house111222.surge.sh/"
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - id: set-matrix
-        run: echo "::set-output name=matrix::{\"include\":[{\"env\":\"dev\",\"url\":\"${{ secrets.DEVURL }}\"},{\"env\":\"stage\",\"url\":\"${{ secrets.STAGEURL }}\"}]}"
+        run: echo "::set-output name=matrix::{\"include\":[{\"env\":\"dev\",\"url\":\"$DEVURL\"},{\"env\":\"stage\",\"url\":\"$STAGEURL\"}]}"
   Deploy:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
