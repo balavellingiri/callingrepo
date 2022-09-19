@@ -10,11 +10,9 @@ on:
 
 jobs:
   Build:
-    steps:
-      - name: calling the resueble worklow
-        uses: balavellingiri/calledrepo/.github/workflows/build-job.yaml@main
-        with:
-          os-type: ubuntu-latest
+    uses: balavellingiri/calledrepo/.github/workflows/build-job.yaml@main
+      with:
+        os-type: ubuntu-latest
   env-declaration:
     runs-on: ubuntu-latest
     outputs:
