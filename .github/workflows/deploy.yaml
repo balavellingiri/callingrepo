@@ -12,7 +12,7 @@ jobs:
   Build:
     uses: balavellingiri/calledrepo/.github/workflows/build-job.yaml@main
       with:
-        ostype: ubuntu-latest
+        ostype: "ubuntu-latest"
   env-declaration:
     runs-on: ubuntu-latest
     outputs:
