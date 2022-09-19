@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "main"
+    tags:
+      - v1.*
+
+jobs:
+  Build:
+    steps:
+      - name: calling the resueble worklow
+        uses: balavellingiri/calledrepo/.github/workflows/build-job.yaml@main
+        with:
+          os-type: ubuntu-latest
+  env-declaration:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: echo "::set-output name=matrix::{\"include\":[{\"env\":\"dev\",\"url\":\"${{ secrets.DEVURL }}\"},{\"env\":\"stage\",\"url\":\"${{ secrets.STAGEURL }}\"}]}"
+  Deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: ["Build", "env-declaration"]
+    strategy:
+      matrix: ${{ fromJSON(needs.env-declaration.outputs.matrix) }}
+    env:
+      SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
+      SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v1
+      - name: Creating Cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Environment setup
+        uses: actions/setup-node@v1
+        with:
+          node-version: "16.x"
+      - name: Install Node dependencies
+        run: npm ci
+      - name: Build the App
+        env:
+          ENV: ${{ matrix.env }}
+        run: | 
+          npm run build
+          echo "$ENV"
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          path: build
+          name: build
+      - name: Deploy the app
+        env: 
+          URL: ${{ matrix.url }}
+        run: npx surge --project ./build --domain $URL
